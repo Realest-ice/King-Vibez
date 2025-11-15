@@ -1,30 +1,27 @@
-const { v4: uuidv4 } = require('uuid');
-const twilio = require('twilio');
+const nodemailer = require("nodemailer");
 
-const debug = process.env.OTP_DEBUG === "true";
+module.exports.sendOTP = async (email, otp) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
 
-let client = null;
-if (!debug && process.env.TWILIO_SID) {
-  client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
-}
+    const info = await transporter.sendMail({
+      from: `"King Vibez Admin" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is: ${otp}`,
+      html: `<h2>Your OTP is: <b>${otp}</b></h2>`,
+    });
 
-const generateCode = () =>
-  Math.floor(100000 + Math.random() * 900000).toString();
-
-exports.generateAndSendOtp = async (phone) => {
-  const code = generateCode();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 5);
-
-  if (debug) {
-    console.log("DEBUG OTP:", code);
-    return { code, expiresAt };
+    console.log("OTP email sent:", info.messageId);
+  } catch (error) {
+    console.log("Email error:", error);
   }
-
-  await client.messages.create({
-    body: `Your OTP is ${code}`,
-    from: process.env.TWILIO_FROM,
-    to: phone
-  });
-
-  return { code, expiresAt };
 };
