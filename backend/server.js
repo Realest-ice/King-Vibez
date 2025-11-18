@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const path = require('path');
 
+const createAdmins = require("./config/createAdmins");
 const authRoutes = require('./routes/auth');
 const songRoutes = require('./routes/songs');
 const uploadRoutes = require('./routes/upload');
